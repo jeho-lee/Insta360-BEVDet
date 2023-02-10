@@ -19,7 +19,6 @@ OBJECTSAMPLERS = Registry('Object sampler')
 DATASETS = Registry('dataset')
 PIPELINES = Registry('pipeline')
 
-
 def build_dataset(cfg, default_args=None):
     from mmdet3d.datasets.dataset_wrappers import CBGSDataset
     from mmdet.datasets.dataset_wrappers import (ClassBalancedDataset,
@@ -40,7 +39,7 @@ def build_dataset(cfg, default_args=None):
         dataset = CBGSDataset(build_dataset(cfg['dataset'], default_args))
     elif isinstance(cfg.get('ann_file'), (list, tuple)):
         dataset = _concat_dataset(cfg, default_args)
-    elif cfg['type'] in DATASETS._module_dict.keys():
+    elif cfg['type'] in DATASETS._module_dict.keys(): # here
         dataset = build_from_cfg(cfg, DATASETS, default_args)
     else:
         dataset = build_from_cfg(cfg, MMDET_DATASETS, default_args)

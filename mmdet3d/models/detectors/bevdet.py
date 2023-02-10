@@ -142,8 +142,7 @@ class BEVDet(CenterPoint):
         if not isinstance(img_inputs[0][0], list):
             img_inputs = [img_inputs] if img_inputs is None else img_inputs
             points = [points] if points is None else points
-            return self.simple_test(points[0], img_metas[0], img_inputs[0],
-                                    **kwargs)
+            return self.simple_test(points[0], img_metas[0], img_inputs[0], **kwargs)
         else:
             return self.aug_test(None, img_metas[0], img_inputs[0], **kwargs)
 
@@ -161,7 +160,13 @@ class BEVDet(CenterPoint):
         img_feats, _, _ = self.extract_feat(
             points, img=img, img_metas=img_metas, **kwargs)
         bbox_list = [dict() for _ in range(len(img_metas))]
+        
+        """
+        simple_test_pts from CenterPoint class
+        CenterPoint bbox detection head 실행, LSS를 거쳐서 나온 point clouds 상에서 detection
+        """
         bbox_pts = self.simple_test_pts(img_feats, img_metas, rescale=rescale)
+        
         for result_dict, pts_bbox in zip(bbox_list, bbox_pts):
             result_dict['pts_bbox'] = pts_bbox
         return bbox_list
@@ -255,7 +260,7 @@ class BEVDet4D(BEVDet):
         if self.pre_process:
             self.pre_process_net = builder.build_backbone(pre_process)
         self.align_after_view_transfromation = align_after_view_transfromation
-        self.num_frame = num_adj + 1
+        self.num_frame = num_adj + 1 # 8 (num_adj) + 1
 
         self.with_prev = with_prev
 
@@ -394,8 +399,7 @@ class BEVDet4D(BEVDet):
                          **kwargs):
         if sequential:
             return self.extract_img_feat_sequential(img, kwargs['feat_prev'])
-        imgs, rots, trans, intrins, post_rots, post_trans, bda = \
-            self.prepare_inputs(img)
+        imgs, rots, trans, intrins, post_rots, post_trans, bda = self.prepare_inputs(img)
         """Extract features of images."""
         bev_feat_list = []
         depth_list = []

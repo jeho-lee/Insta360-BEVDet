@@ -172,7 +172,7 @@ def inference_multi_modality_detector(model, pcd, image, ann_file):
     box_type_3d, box_mode_3d = get_box_type(cfg.data.test.box_type_3d)
     # get data info containing calib
     data_infos = mmcv.load(ann_file)
-    image_idx = int(re.findall(r'\d+', image)[-1])  # xxx/sunrgbd_000017.jpg
+    image_idx = int(re.findall(r'\d+', image)[-1]) # xxx/sunrgbd_000017.jpg
     for x in data_infos:
         if int(x['image']['image_idx']) != image_idx:
             continue

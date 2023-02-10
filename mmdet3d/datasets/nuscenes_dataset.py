@@ -126,7 +126,7 @@ class NuScenesDataset(Custom3DDataset):
     def __init__(self,
                  ann_file,
                  pipeline=None,
-                 data_root=None,
+                 data_root='/data/home/jeholee/omni3D/data/nuscenes/',
                  classes=None,
                  load_interval=1,
                  with_velocity=True,
@@ -209,7 +209,7 @@ class NuScenesDataset(Custom3DDataset):
         return data_infos
 
     def get_data_info(self, index):
-        """Get data info according to the given index.
+        """Get data info according to the given index. 데이터 로더에서 data 하나 씩 얻을 때 불려지는 부분
 
         Args:
             index (int): Index of the sample data to get.
@@ -279,8 +279,7 @@ class NuScenesDataset(Custom3DDataset):
         info_adj_list = []
         for select_id in range(*self.multi_adj_frame_id_cfg):
             select_id = max(index - select_id, 0)
-            if not self.data_infos[select_id]['scene_token'] == info[
-                    'scene_token']:
+            if not self.data_infos[select_id]['scene_token'] == info['scene_token']:
                 info_adj_list.append(info)
             else:
                 info_adj_list.append(self.data_infos[select_id])
@@ -350,8 +349,13 @@ class NuScenesDataset(Custom3DDataset):
         nusc_annos = {}
         mapped_class_names = self.CLASSES
 
+        # print(results)
+        
         print('Start to convert detection format...')
-        for sample_id, det in enumerate(mmcv.track_iter_progress(results)):
+        # for sample_id, det in enumerate(mmcv.track_iter_progress(results)):
+        for sample_id, det in enumerate(results):
+            # print(det)
+            
             boxes = det['boxes_3d'].tensor.numpy()
             scores = det['scores_3d'].numpy()
             labels = det['labels_3d'].numpy()
@@ -421,6 +425,95 @@ class NuScenesDataset(Custom3DDataset):
         print('Results writes to', res_path)
         mmcv.dump(nusc_submissions, res_path)
         return res_path
+    
+    def _format_single_bbox(self, results, sample_idx, jsonfile_prefix=None):
+        """Convert the results to the standard format.
+
+        Args:
+            results (list[dict]): Testing results of the dataset.
+            jsonfile_prefix (str): The prefix of the output jsonfile.
+                You can specify the output directory/filename by
+                modifying the jsonfile_prefix. Default: None.
+
+        Returns:
+            str: Path of the output json file.
+        """
+        nusc_annos = {}
+        mapped_class_names = self.CLASSES
+
+        print('Start to convert detection format...')
+        det = results[0] # single inference result
+        boxes = det['boxes_3d'].tensor.numpy()
+        scores = det['scores_3d'].numpy()
+        labels = det['labels_3d'].numpy()
+        
+        sample_token = self.data_infos[sample_idx]['token']
+        print(sample_token)
+
+        trans = self.data_infos[sample_idx]['cams'][self.ego_cam]['ego2global_translation']
+        rot = self.data_infos[sample_idx]['cams'][self.ego_cam]['ego2global_rotation']
+        rot = pyquaternion.Quaternion(rot)
+        annos = list()
+        for i, box in enumerate(boxes):
+            name = mapped_class_names[labels[i]]
+            center = box[:3]
+            wlh = box[[4, 3, 5]]
+            box_yaw = box[6]
+            box_vel = box[7:].tolist()
+            box_vel.append(0)
+            quat = pyquaternion.Quaternion(axis=[0, 0, 1], radians=box_yaw)
+            nusc_box = NuScenesBox(center, wlh, quat, velocity=box_vel)
+            nusc_box.rotate(rot)
+            nusc_box.translate(trans)
+            if np.sqrt(nusc_box.velocity[0]**2 +
+                       nusc_box.velocity[1]**2) > 0.2:
+                if name in [
+                        'car',
+                        'construction_vehicle',
+                        'bus',
+                        'truck',
+                        'trailer',
+                ]:
+                    attr = 'vehicle.moving'
+                elif name in ['bicycle', 'motorcycle']:
+                    attr = 'cycle.with_rider'
+                else:
+                    attr = self.DefaultAttribute[name]
+            else:
+                if name in ['pedestrian']:
+                    attr = 'pedestrian.standing'
+                elif name in ['bus']:
+                    attr = 'vehicle.stopped'
+                else:
+                    attr = self.DefaultAttribute[name]
+            nusc_anno = dict(
+                sample_token=sample_token,
+                translation=nusc_box.center.tolist(),
+                size=nusc_box.wlh.tolist(),
+                rotation=nusc_box.orientation.elements.tolist(),
+                velocity=nusc_box.velocity[:2],
+                detection_name=name,
+                detection_score=float(scores[i]),
+                attribute_name=attr,
+            )
+            annos.append(nusc_anno)
+        # other views results of the same frame should be concatenated
+        if sample_token in nusc_annos:
+            nusc_annos[sample_token].extend(annos)
+        else:
+            nusc_annos[sample_token] = annos
+        
+        nusc_submissions = {
+            'meta': self.modality,
+            'results': nusc_annos,
+        }
+
+        mmcv.mkdir_or_exist(jsonfile_prefix)
+        res_path = osp.join(jsonfile_prefix, 'results_nusc.json')
+        print('Results writes to', res_path)
+        mmcv.dump(nusc_submissions, res_path)
+        return res_path
+
 
     def _evaluate_single(self,
                          result_path,
@@ -524,6 +617,25 @@ class NuScenesDataset(Custom3DDataset):
                 result_files.update(
                     {name: self._format_bbox(results_, tmp_file_)})
         return result_files, tmp_dir
+    
+    def format_single_result(self, results, idx, jsonfile_prefix=None):
+
+        assert idx is not None, 'format single result must pass nuscenes index'
+        
+        # if not ('pts_bbox' in results or 'img_bbox' in results):
+        #     result_files = self._format_bbox(results, jsonfile_prefix)
+        # else:
+        
+        # should take the inner dict out of 'pts_bbox' or 'img_bbox' dict
+        result_files = dict()
+        for name in results[0]:
+            # print(f'\nFormating bboxes of {name}')
+            results_ = [out[name] for out in results]
+            tmp_file_ = osp.join(jsonfile_prefix, name)
+            result_files.update(
+                {name: self._format_single_bbox(results_, idx, tmp_file_)})
+
+        return result_files
 
     def evaluate(self,
                  results,

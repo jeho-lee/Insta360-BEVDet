@@ -72,6 +72,7 @@ class Custom3DDataset(Dataset):
                  file_client_args=dict(backend='disk')):
         super().__init__()
         self.data_root = data_root
+        print(self.data_root)
         self.ann_file = ann_file
         self.test_mode = test_mode
         self.modality = modality
@@ -133,7 +134,7 @@ class Custom3DDataset(Dataset):
         sample_idx = info['sample_idx']
         pts_filename = osp.join(self.data_root,
                                 info['lidar_points']['lidar_path'])
-
+        
         input_dict = dict(
             pts_filename=pts_filename,
             sample_idx=sample_idx,
@@ -242,7 +243,10 @@ class Custom3DDataset(Dataset):
         Returns:
             dict: Testing data dict of the corresponding index.
         """
-        input_dict = self.get_data_info(index)
+        input_dict = self.get_data_info(index) # get_data_info function is from datasets/nuscenes_dataset.py
+        
+        # print(input_dict)
+        
         self.pre_pipeline(input_dict)
         example = self.pipeline(input_dict)
         return example

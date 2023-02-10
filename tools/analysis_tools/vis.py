@@ -102,7 +102,7 @@ def parse_args():
     parser.add_argument(
         '--root_path',
         type=str,
-        default='./data/nuscenes',
+        default='../data/nuscenes',
         help='Path to nuScenes dataset')
     parser.add_argument(
         '--save_path',
@@ -131,8 +131,7 @@ def main():
     # load predicted results
     res = json.load(open(args.res, 'r'))
     # load dataset information
-    info_path = \
-        args.root_path + '/bevdetv2-nuscenes_infos_%s.pkl' % args.version
+    info_path = args.root_path + '/bevdetv2-nuscenes_infos_%s.pkl' % args.version
     dataset = pickle.load(open(info_path, 'rb'))
     # prepare save path and medium
     vis_dir = args.save_path
@@ -157,11 +156,12 @@ def main():
         'CAM_FRONT_LEFT', 'CAM_FRONT', 'CAM_FRONT_RIGHT', 'CAM_BACK_LEFT',
         'CAM_BACK', 'CAM_BACK_RIGHT'
     ]
+    
     print('start visualizing results')
-    for cnt, infos in enumerate(
-            dataset['infos'][:min(args.vis_frames, len(dataset['infos']))]):
+    for cnt, infos in enumerate(dataset['infos'][:min(args.vis_frames, len(dataset['infos']))]):
         if cnt % 10 == 0:
             print('%d/%d' % (cnt, min(args.vis_frames, len(dataset['infos']))))
+            
         # collect instances
         pred_res = res['results'][infos['token']]
         pred_boxes = [
@@ -170,6 +170,7 @@ def main():
                 np.pi / 2
             ] for rid in range(len(pred_res))
         ]
+        
         if len(pred_boxes) == 0:
             corners_lidar = np.zeros((0, 3), dtype=np.float32)
         else:
@@ -224,7 +225,7 @@ def main():
                             corners_img[aid, index[0]],
                             corners_img[aid, index[1]],
                             color=color_map[int(pred_flag[aid])],
-                            thickness=scale_factor)
+                            thickness=1)
             imgs.append(img)
 
         # bird-eye-view

@@ -908,6 +908,7 @@ class PrepareImageInputs(object):
         sweepsensor2sweepego[3, 3] = 1
         sweepsensor2sweepego[:3, :3] = sweepsensor2sweepego_rot
         sweepsensor2sweepego[:3, -1] = sweepsensor2sweepego_tran
+        
         # sweep ego to global
         w, x, y, z = cam_info['cams'][cam_name]['ego2global_rotation']
         sweepego2global_rot = torch.Tensor(
@@ -931,8 +932,7 @@ class PrepareImageInputs(object):
         keyego2global[:3, -1] = keyego2global_tran
         global2keyego = keyego2global.inverse()
 
-        sweepsensor2keyego = \
-            global2keyego @ sweepego2global @ sweepsensor2sweepego
+        sweepsensor2keyego = global2keyego @ sweepego2global @ sweepsensor2sweepego
 
         # global sensor to cur ego
         w, x, y, z = key_info['cams'][cam_name]['ego2global_rotation']
@@ -1067,6 +1067,7 @@ class PrepareImageInputs(object):
         return (imgs, rots, trans, intrins, post_rots, post_trans)
 
     def __call__(self, results):
+        # print(results)
         results['img_inputs'] = self.get_inputs(results)
         return results
 

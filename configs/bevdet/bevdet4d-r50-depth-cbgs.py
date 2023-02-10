@@ -16,8 +16,7 @@ data_config = {
         'CAM_FRONT_LEFT', 'CAM_FRONT', 'CAM_FRONT_RIGHT', 'CAM_BACK_LEFT',
         'CAM_BACK', 'CAM_BACK_RIGHT'
     ],
-    'Ncams':
-    6,
+    'Ncams': 6,
     'input_size': (256, 704),
     'src_size': (900, 1600),
 
@@ -46,7 +45,7 @@ multi_adj_frame_id_cfg = (1, 8+1, 1)
 model = dict(
     type='BEVDepth4D',
     align_after_view_transfromation=False,
-    num_adj=len(range(*multi_adj_frame_id_cfg)),
+    num_adj=len(range(*multi_adj_frame_id_cfg)), # 인접한 8개의 frames를 temporal fusion
     img_backbone=dict(
         pretrained='torchvision://resnet50',
         type='ResNet',
@@ -152,7 +151,10 @@ model = dict(
 
 # Data
 dataset_type = 'NuScenesDataset'
-data_root = 'data/nuscenes/'
+
+# data_root = '../data/nuscenes/'
+data_root = '/data/home/jeholee/omni3D/data/nuscenes/'
+
 file_client_args = dict(backend='disk')
 
 bda_aug_conf = dict(
@@ -230,6 +232,7 @@ share_data_config = dict(
 
 test_data_config = dict(
     pipeline=test_pipeline,
+    data_root=data_root,
     ann_file=data_root + 'bevdetv2-nuscenes_infos_val.pkl')
 
 data = dict(
