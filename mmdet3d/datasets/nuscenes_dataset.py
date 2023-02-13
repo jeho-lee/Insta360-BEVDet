@@ -13,7 +13,6 @@ from .builder import DATASETS
 from .custom_3d import Custom3DDataset
 from .pipelines import Compose
 
-
 @DATASETS.register_module()
 class NuScenesDataset(Custom3DDataset):
     r"""NuScenes Dataset.
@@ -166,6 +165,7 @@ class NuScenesDataset(Custom3DDataset):
 
         self.img_info_prototype = img_info_prototype
         self.multi_adj_frame_id_cfg = multi_adj_frame_id_cfg
+        print(self.multi_adj_frame_id_cfg)
         self.ego_cam = ego_cam
 
     def get_cat_ids(self, idx):
@@ -208,6 +208,8 @@ class NuScenesDataset(Custom3DDataset):
         self.version = self.metadata['version']
         return data_infos
 
+    """ 데이터 로더에서 data 하나 씩 얻을 때 불려지는 부분 => 
+    input_dict는 loading.py의 PrepareImageInput class => get_inputs function에 넘겨짐 (results) """
     def get_data_info(self, index):
         """Get data info according to the given index. 데이터 로더에서 data 하나 씩 얻을 때 불려지는 부분
 
@@ -242,19 +244,18 @@ class NuScenesDataset(Custom3DDataset):
                 image_paths = []
                 lidar2img_rts = []
                 for cam_type, cam_info in info['cams'].items():
+                    
                     image_paths.append(cam_info['data_path'])
+                    
                     # obtain lidar to image transformation matrix
-                    lidar2cam_r = np.linalg.inv(
-                        cam_info['sensor2lidar_rotation'])
-                    lidar2cam_t = cam_info[
-                        'sensor2lidar_translation'] @ lidar2cam_r.T
+                    lidar2cam_r = np.linalg.inv(cam_info['sensor2lidar_rotation'])
+                    lidar2cam_t = cam_info['sensor2lidar_translation'] @ lidar2cam_r.T
                     lidar2cam_rt = np.eye(4)
                     lidar2cam_rt[:3, :3] = lidar2cam_r.T
                     lidar2cam_rt[3, :3] = -lidar2cam_t
                     intrinsic = cam_info['cam_intrinsic']
                     viewpad = np.eye(4)
-                    viewpad[:intrinsic.shape[0], :intrinsic.
-                            shape[1]] = intrinsic
+                    viewpad[:intrinsic.shape[0], :intrinsic.shape[1]] = intrinsic
                     lidar2img_rt = (viewpad @ lidar2cam_rt.T)
                     lidar2img_rts.append(lidar2img_rt)
 
@@ -267,8 +268,8 @@ class NuScenesDataset(Custom3DDataset):
                 if not self.test_mode:
                     annos = self.get_ann_info(index)
                     input_dict['ann_info'] = annos
-            else:
-                assert 'bevdet' in self.img_info_prototype
+            else: 
+                assert 'bevdet' in self.img_info_prototype # BEVDet4D는 여기!
                 input_dict.update(dict(curr=info))
                 if '4d' in self.img_info_prototype:
                     info_adj_list = self.get_adj_info(info, index)
@@ -514,65 +515,6 @@ class NuScenesDataset(Custom3DDataset):
         mmcv.dump(nusc_submissions, res_path)
         return res_path
 
-
-    def _evaluate_single(self,
-                         result_path,
-                         logger=None,
-                         metric='bbox',
-                         result_name='pts_bbox'):
-        """Evaluation for a single model in nuScenes protocol.
-
-        Args:
-            result_path (str): Path of the result file.
-            logger (logging.Logger | str, optional): Logger used for printing
-                related information during evaluation. Default: None.
-            metric (str, optional): Metric name used for evaluation.
-                Default: 'bbox'.
-            result_name (str, optional): Result name in the metric prefix.
-                Default: 'pts_bbox'.
-
-        Returns:
-            dict: Dictionary of evaluation details.
-        """
-        from nuscenes import NuScenes
-        from nuscenes.eval.detection.evaluate import NuScenesEval
-
-        output_dir = osp.join(*osp.split(result_path)[:-1])
-        nusc = NuScenes(
-            version=self.version, dataroot=self.data_root, verbose=False)
-        eval_set_map = {
-            'v1.0-mini': 'mini_val',
-            'v1.0-trainval': 'val',
-        }
-        nusc_eval = NuScenesEval(
-            nusc,
-            config=self.eval_detection_configs,
-            result_path=result_path,
-            eval_set=eval_set_map[self.version],
-            output_dir=output_dir,
-            verbose=False)
-        nusc_eval.main(render_curves=False)
-
-        # record metrics
-        metrics = mmcv.load(osp.join(output_dir, 'metrics_summary.json'))
-        detail = dict()
-        metric_prefix = f'{result_name}_NuScenes'
-        for name in self.CLASSES:
-            for k, v in metrics['label_aps'][name].items():
-                val = float('{:.4f}'.format(v))
-                detail['{}/{}_AP_dist_{}'.format(metric_prefix, name, k)] = val
-            for k, v in metrics['label_tp_errors'][name].items():
-                val = float('{:.4f}'.format(v))
-                detail['{}/{}_{}'.format(metric_prefix, name, k)] = val
-            for k, v in metrics['tp_errors'].items():
-                val = float('{:.4f}'.format(v))
-                detail['{}/{}'.format(metric_prefix,
-                                      self.ErrNameMapping[k])] = val
-
-        detail['{}/NDS'.format(metric_prefix)] = metrics['nd_score']
-        detail['{}/mAP'.format(metric_prefix)] = metrics['mean_ap']
-        return detail
-
     def format_results(self, results, jsonfile_prefix=None):
         """Format the results to json (standard format for COCO evaluation).
 
@@ -637,6 +579,64 @@ class NuScenesDataset(Custom3DDataset):
 
         return result_files
 
+    def _evaluate_single(self,
+                         result_path,
+                         logger=None,
+                         metric='bbox',
+                         result_name='pts_bbox'):
+        """Evaluation for a single model in nuScenes protocol.
+
+        Args:
+            result_path (str): Path of the result file.
+            logger (logging.Logger | str, optional): Logger used for printing
+                related information during evaluation. Default: None.
+            metric (str, optional): Metric name used for evaluation.
+                Default: 'bbox'.
+            result_name (str, optional): Result name in the metric prefix.
+                Default: 'pts_bbox'.
+
+        Returns:
+            dict: Dictionary of evaluation details.
+        """
+        from nuscenes import NuScenes
+        from nuscenes.eval.detection.evaluate import NuScenesEval
+
+        output_dir = osp.join(*osp.split(result_path)[:-1])
+        nusc = NuScenes(
+            version=self.version, dataroot=self.data_root, verbose=False)
+        eval_set_map = {
+            'v1.0-mini': 'mini_val',
+            'v1.0-trainval': 'val',
+        }
+        nusc_eval = NuScenesEval(
+            nusc,
+            config=self.eval_detection_configs,
+            result_path=result_path,
+            eval_set=eval_set_map[self.version],
+            output_dir=output_dir,
+            verbose=False)
+        nusc_eval.main(render_curves=False)
+
+        # record metrics
+        metrics = mmcv.load(osp.join(output_dir, 'metrics_summary.json'))
+        detail = dict()
+        metric_prefix = f'{result_name}_NuScenes'
+        for name in self.CLASSES:
+            for k, v in metrics['label_aps'][name].items():
+                val = float('{:.4f}'.format(v))
+                detail['{}/{}_AP_dist_{}'.format(metric_prefix, name, k)] = val
+            for k, v in metrics['label_tp_errors'][name].items():
+                val = float('{:.4f}'.format(v))
+                detail['{}/{}_{}'.format(metric_prefix, name, k)] = val
+            for k, v in metrics['tp_errors'].items():
+                val = float('{:.4f}'.format(v))
+                detail['{}/{}'.format(metric_prefix,
+                                      self.ErrNameMapping[k])] = val
+
+        detail['{}/NDS'.format(metric_prefix)] = metrics['nd_score']
+        detail['{}/mAP'.format(metric_prefix)] = metrics['mean_ap']
+        return detail
+    
     def evaluate(self,
                  results,
                  metric='bbox',
