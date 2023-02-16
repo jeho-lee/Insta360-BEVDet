@@ -77,13 +77,17 @@ def main():
     for i, data in enumerate(data_loader):
         inputs = [d.cuda() for d in data['img_inputs'][0]]
         with torch.no_grad():
-            feat_prev, inputs = model.module.extract_img_feat(
-                inputs, pred_prev=True, img_metas=None)
-        data['img_inputs'][0] = inputs
+            """ 
+            1. extract_img_feat function with pred_prev=True
+                9개의 inputs 중에서 현재 frame을 제외한 직전 8개의 과거 frames에 대한 features를 미리 추출
+            """
+            feat_prev, inputs = model.module.extract_img_feat(inputs, pred_prev=True, img_metas=None)
+        data['img_inputs'][0] = inputs # model의 input에는 현재 frame에 대한 data만 통과
 
         torch.cuda.synchronize()
         start_time = time.perf_counter()
 
+        # sequential=True, feat_prev => 과거 frames의 BEV features를 넘김
         with torch.no_grad():
             model(
                 return_loss=False,

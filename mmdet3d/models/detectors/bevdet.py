@@ -60,6 +60,10 @@ class BEVDet(CenterPoint):
 
     def extract_feat(self, points, img, img_metas, **kwargs):
         """Extract features from images and points."""
+        
+        """ 
+        BEVDet4D의 extract_img_feat는 BEVDet4D class에서 inherit
+        """
         img_feats, depth = self.extract_img_feat(img, img_metas, **kwargs)
         pts_feats = None
         return (img_feats, pts_feats, depth)
@@ -150,6 +154,7 @@ class BEVDet(CenterPoint):
         """Test function without augmentaiton."""
         assert False
 
+    """ BEVDet, BEVDet4D의 forward pass는 모두 결국 여기부터 시작 """
     def simple_test(self,
                     points,
                     img_metas,
@@ -157,8 +162,7 @@ class BEVDet(CenterPoint):
                     rescale=False,
                     **kwargs):
         """Test function without augmentaiton."""
-        img_feats, _, _ = self.extract_feat(
-            points, img=img, img_metas=img_metas, **kwargs)
+        img_feats, _, _ = self.extract_feat(points, img=img, img_metas=img_metas, **kwargs)
         bbox_list = [dict() for _ in range(len(img_metas))]
         
         """
@@ -346,6 +350,7 @@ class BEVDet4D(BEVDet):
         return bev_feat, depth
 
     def extract_img_feat_sequential(self, inputs, feat_prev):
+        # Extract BEV feature and depth of current frame
         imgs, rots_curr, trans_curr, intrins = inputs[:4]
         rots_prev, trans_prev, post_rots, post_trans, bda = inputs[4:]
         bev_feat_list = []
@@ -391,6 +396,16 @@ class BEVDet4D(BEVDet):
         rots, trans, intrins, post_rots, post_trans = extra
         return imgs, rots, trans, intrins, post_rots, post_trans, bda
 
+    """
+    image features와 depth map 추출 후 BEV feature 획득하는 과정
+    인접한 frames에 대한 BEV features 모두 추출 후 align and concat
+    
+        pred_prev가 True인 경우 => 과거 frames에 대한 BEV feature 및 depth map을 미리 추출하는 역할
+        sequential이 True인 경우 => pred_prev=True로 과거 frames에 대한 features를 얻은 뒤, 
+                                    현재 frame에 대한 input data와 previous features (feat_prev)를 같이 넘김
+                                    extract_img_feat_sequential 함수에서 현재 frame input에 대한 BEV feature를 추출하고,
+                                    직전 frames의 BEV feature를 다시 추출하지 않고 넘겨온 feat_prev로 바로 align
+    """
     def extract_img_feat(self,
                          img,
                          img_metas,
@@ -399,13 +414,17 @@ class BEVDet4D(BEVDet):
                          **kwargs):
         if sequential:
             return self.extract_img_feat_sequential(img, kwargs['feat_prev'])
+        
+        # 인접한 frames와 현재 frame을 모두 포함한 input data 준비
         imgs, rots, trans, intrins, post_rots, post_trans, bda = self.prepare_inputs(img)
+        
         """Extract features of images."""
         bev_feat_list = []
         depth_list = []
         key_frame = True  # back propagation for key frame only
-        for img, rot, tran, intrin, post_rot, post_tran in zip(
-                imgs, rots, trans, intrins, post_rots, post_trans):
+        
+        # 8개의 input data 모두에 대해, BEV feature와 depth map을 list로 저장
+        for img, rot, tran, intrin, post_rot, post_tran in zip(imgs, rots, trans, intrins, post_rots, post_trans): 
             if key_frame or self.with_prev:
                 if self.align_after_view_transfromation:
                     rot, tran = rots[0], trans[0]
@@ -414,7 +433,7 @@ class BEVDet4D(BEVDet):
                 inputs_curr = (img, rot, tran, intrin, post_rot,
                                post_tran, bda, mlp_input)
                 if key_frame:
-                    bev_feat, depth = self.prepare_bev_feat(*inputs_curr)
+                    bev_feat, depth = self.prepare_bev_feat(*inputs_curr) # BEV feature과 depth map 반환
                 else:
                     with torch.no_grad():
                         bev_feat, depth = self.prepare_bev_feat(*inputs_curr)
@@ -424,10 +443,12 @@ class BEVDet4D(BEVDet):
             bev_feat_list.append(bev_feat)
             depth_list.append(depth)
             key_frame = False
+            
+        """ 현재 frame의 이전 frames에 대한 features와 기타 data를 반환 """
         if pred_prev:
             assert self.align_after_view_transfromation
             assert rots[0].shape[0] == 1
-            feat_prev = torch.cat(bev_feat_list[1:], dim=0)
+            feat_prev = torch.cat(bev_feat_list[1:], dim=0) # 현재 frame은 0번째에 위치, 1 이후는 과거 frames
             trans_curr = trans[0].repeat(self.num_frame - 1, 1, 1)
             rots_curr = rots[0].repeat(self.num_frame - 1, 1, 1, 1)
             trans_prev = torch.cat(trans[1:], dim=0)
@@ -437,13 +458,13 @@ class BEVDet4D(BEVDet):
                 imgs[0], rots_curr, trans_curr, intrins[0], rots_prev,
                 trans_prev, post_rots[0], post_trans[0], bda_curr
             ]
+        
         if self.align_after_view_transfromation:
             for adj_id in range(1, self.num_frame):
-                bev_feat_list[adj_id] = \
-                    self.shift_feature(bev_feat_list[adj_id],
-                                       [trans[0], trans[adj_id]],
-                                       [rots[0], rots[adj_id]],
-                                       bda)
+                bev_feat_list[adj_id] = self.shift_feature(bev_feat_list[adj_id],
+                                                           [trans[0], trans[adj_id]],
+                                                           [rots[0], rots[adj_id]],
+                                                           bda)
         bev_feat = torch.cat(bev_feat_list, dim=1)
         x = self.bev_encoder(bev_feat)
         return [x], depth_list[0]

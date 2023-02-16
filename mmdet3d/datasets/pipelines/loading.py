@@ -184,6 +184,8 @@ class PrepareImageInputs(object):
         results['cam_names'] = cam_names
         canvas = []
         sensor2sensors = []
+        
+        """ 1. 여러 frames의 image tensors와 현재 frame의 rot, trans 획득 """
         for cam_name in cam_names:
             cam_data = results['curr']['cams'][cam_name]
             filename = cam_data['data_path']
@@ -220,7 +222,14 @@ class PrepareImageInputs(object):
 
             canvas.append(np.array(img))
             imgs.append(self.normalize_img(img))
-
+            
+            intrins.append(intrin)
+            rots.append(rot)
+            trans.append(tran)
+            post_rots.append(post_rot)
+            post_trans.append(post_tran)
+            sensor2sensors.append(sensor2sensor)
+            
             if self.sequential:
                 assert 'adjacent' in results
                 for adj_info in results['adjacent']:
@@ -233,13 +242,8 @@ class PrepareImageInputs(object):
                         flip=flip,
                         rotate=rotate)
                     imgs.append(self.normalize_img(img_adjacent))
-            intrins.append(intrin)
-            rots.append(rot)
-            trans.append(tran)
-            post_rots.append(post_rot)
-            post_trans.append(post_tran)
-            sensor2sensors.append(sensor2sensor)
 
+        """ 2. adjacent frames와 cur frame 간의 motion 정보 계산 """
         if self.sequential:
             for adj_info in results['adjacent']:
                 post_trans.extend(post_trans[:len(cam_names)])
@@ -264,14 +268,16 @@ class PrepareImageInputs(object):
                 rots.extend(rots_adj)
                 trans.extend(trans_adj)
                 sensor2sensors.extend(sensor2sensors_adj)
+        
+        """ 3. 취합 """ 
         imgs = torch.stack(imgs)
-
         rots = torch.stack(rots)
         trans = torch.stack(trans)
         intrins = torch.stack(intrins)
         post_rots = torch.stack(post_rots)
         post_trans = torch.stack(post_trans)
         sensor2sensors = torch.stack(sensor2sensors)
+        
         results['canvas'] = canvas
         results['sensor2sensors'] = sensor2sensors
         return (imgs, rots, trans, intrins, post_rots, post_trans)
