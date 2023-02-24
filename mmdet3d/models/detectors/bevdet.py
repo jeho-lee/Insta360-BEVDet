@@ -308,8 +308,7 @@ class BEVDet4D(BEVDet):
         c12l0 = bda_.matmul(c12l0)
 
         # transformation from current ego frame to adjacent ego frame
-        l02l1 = c02l0.matmul(torch.inverse(c12l0))[:, 0, :, :].view(
-            n, 1, 1, 4, 4)
+        l02l1 = c02l0.matmul(torch.inverse(c12l0))[:, 0, :, :].view(n, 1, 1, 4, 4)
         '''
           c02l0 * inv(c12l0)
         = c02l0 * inv(l12l0 * c12l1)

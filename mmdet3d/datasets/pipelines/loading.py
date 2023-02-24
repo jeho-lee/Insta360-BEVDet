@@ -136,6 +136,10 @@ class PrepareImageInputs(object):
         sweepego2global[:3, -1] = sweepego2global_tran
 
         # global sensor to cur ego
+        """ HuangJunJie2017 comment
+        ego_cam='CAM_FRONT' does not mean that we use the camera coordinate system. 
+        Instead, we use the ego coordinate system defined on the IMU sensor, which is recorded when the 'CAM_FRONT' camera captures the images.
+        """
         w, x, y, z = key_info['cams'][ego_cam]['ego2global_rotation']
         keyego2global_rot = torch.Tensor(Quaternion(w, x, y, z).rotation_matrix)
         keyego2global_tran = torch.Tensor(key_info['cams'][ego_cam]['ego2global_translation'])
@@ -222,7 +226,6 @@ class PrepareImageInputs(object):
 
             canvas.append(np.array(img))
             imgs.append(self.normalize_img(img))
-            
             intrins.append(intrin)
             rots.append(rot)
             trans.append(tran)

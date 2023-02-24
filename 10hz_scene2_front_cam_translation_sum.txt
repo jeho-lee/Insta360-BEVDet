@@ -1,0 +1,181 @@
+Load erp image: ../data/daejeon_road_outdoor/erp_images_10hz/scene_2/frame_0001.jpg
+Load erp image: ../data/daejeon_road_outdoor/erp_images_10hz/scene_2/frame_0002.jpg
+translation  tensor([-0.0021,  0.0003, -0.0219], device='cuda:0') 
+
+Load erp image: ../data/daejeon_road_outdoor/erp_images_10hz/scene_2/frame_0003.jpg
+translation  tensor([-0.0042,  0.0006, -0.0431], device='cuda:0') 
+
+Load erp image: ../data/daejeon_road_outdoor/erp_images_10hz/scene_2/frame_0004.jpg
+translation  tensor([-0.0062,  0.0009, -0.0649], device='cuda:0') 
+
+Load erp image: ../data/daejeon_road_outdoor/erp_images_10hz/scene_2/frame_0005.jpg
+translation  tensor([-0.0079,  0.0012, -0.0853], device='cuda:0') 
+
+Load erp image: ../data/daejeon_road_outdoor/erp_images_10hz/scene_2/frame_0006.jpg
+translation  tensor([-0.0095,  0.0016, -0.1075], device='cuda:0') 
+
+Load erp image: ../data/daejeon_road_outdoor/erp_images_10hz/scene_2/frame_0007.jpg
+translation  tensor([-0.0111,  0.0019, -0.1289], device='cuda:0') 
+
+Load erp image: ../data/daejeon_road_outdoor/erp_images_10hz/scene_2/frame_0008.jpg
+translation  tensor([-0.0128,  0.0023, -0.1522], device='cuda:0') 
+
+Load erp image: ../data/daejeon_road_outdoor/erp_images_10hz/scene_2/frame_0009.jpg
+translation  tensor([-0.0144,  0.0027, -0.1750], device='cuda:0') 
+
+Load erp image: ../data/daejeon_road_outdoor/erp_images_10hz/scene_2/frame_0010.jpg
+translation  tensor([-0.0163,  0.0030, -0.1978], device='cuda:0') 
+
+Load erp image: ../data/daejeon_road_outdoor/erp_images_10hz/scene_2/frame_0011.jpg
+translation  tensor([-0.0179,  0.0034, -0.2196], device='cuda:0') 
+
+Load erp image: ../data/daejeon_road_outdoor/erp_images_10hz/scene_2/frame_0012.jpg
+translation  tensor([-0.0193,  0.0038, -0.2404], device='cuda:0') 
+
+Load erp image: ../data/daejeon_road_outdoor/erp_images_10hz/scene_2/frame_0013.jpg
+translation  tensor([-0.0208,  0.0041, -0.2631], device='cuda:0') 
+
+Load erp image: ../data/daejeon_road_outdoor/erp_images_10hz/scene_2/frame_0014.jpg
+translation  tensor([-0.0222,  0.0045, -0.2853], device='cuda:0') 
+
+Load erp image: ../data/daejeon_road_outdoor/erp_images_10hz/scene_2/frame_0015.jpg
+translation  tensor([-0.0238,  0.0048, -0.3062], device='cuda:0') 
+
+Load erp image: ../data/daejeon_road_outdoor/erp_images_10hz/scene_2/frame_0016.jpg
+translation  tensor([-0.0252,  0.0051, -0.3262], device='cuda:0') 
+
+Load erp image: ../data/daejeon_road_outdoor/erp_images_10hz/scene_2/frame_0017.jpg
+translation  tensor([-0.0267,  0.0054, -0.3478], device='cuda:0') 
+
+Load erp image: ../data/daejeon_road_outdoor/erp_images_10hz/scene_2/frame_0018.jpg
+translation  tensor([-0.0282,  0.0058, -0.3695], device='cuda:0') 
+
+Load erp image: ../data/daejeon_road_outdoor/erp_images_10hz/scene_2/frame_0019.jpg
+translation  tensor([-0.0295,  0.0061, -0.3893], device='cuda:0') 
+
+Load erp image: ../data/daejeon_road_outdoor/erp_images_10hz/scene_2/frame_0020.jpg
+translation  tensor([-0.0309,  0.0064, -0.4088], device='cuda:0') 
+
+Load erp image: ../data/daejeon_road_outdoor/erp_images_10hz/scene_2/frame_0021.jpg
+translation  tensor([-0.0324,  0.0067, -0.4296], device='cuda:0') 
+
+Load erp image: ../data/daejeon_road_outdoor/erp_images_10hz/scene_2/frame_0022.jpg
+translation  tensor([-0.0340,  0.0070, -0.4499], device='cuda:0') 
+
+Load erp image: ../data/daejeon_road_outdoor/erp_images_10hz/scene_2/frame_0023.jpg
+translation  tensor([-0.0356,  0.0073, -0.4697], device='cuda:0') 
+
+Load erp image: ../data/daejeon_road_outdoor/erp_images_10hz/scene_2/frame_0024.jpg
+translation  tensor([-0.0370,  0.0075, -0.4883], device='cuda:0') 
+
+Load erp image: ../data/daejeon_road_outdoor/erp_images_10hz/scene_2/frame_0025.jpg
+translation  tensor([-0.0386,  0.0078, -0.5088], device='cuda:0') 
+
+Load erp image: ../data/daejeon_road_outdoor/erp_images_10hz/scene_2/frame_0026.jpg
+translation  tensor([-0.0401,  0.0081, -0.5288], device='cuda:0') 
+
+Load erp image: ../data/daejeon_road_outdoor/erp_images_10hz/scene_2/frame_0027.jpg
+translation  tensor([-0.0417,  0.0083, -0.5493], device='cuda:0') 
+
+Load erp image: ../data/daejeon_road_outdoor/erp_images_10hz/scene_2/frame_0028.jpg
+translation  tensor([-0.0433,  0.0086, -0.5701], device='cuda:0') 
+
+Load erp image: ../data/daejeon_road_outdoor/erp_images_10hz/scene_2/frame_0029.jpg
+translation  tensor([-0.0450,  0.0088, -0.5899], device='cuda:0') 
+
+Load erp image: ../data/daejeon_road_outdoor/erp_images_10hz/scene_2/frame_0030.jpg
+translation  tensor([-0.0465,  0.0090, -0.6100], device='cuda:0') 
+
+Load erp image: ../data/daejeon_road_outdoor/erp_images_10hz/scene_2/frame_0031.jpg
+translation  tensor([-0.0483,  0.0093, -0.6309], device='cuda:0') 
+
+Load erp image: ../data/daejeon_road_outdoor/erp_images_10hz/scene_2/frame_0032.jpg
+translation  tensor([-0.0499,  0.0095, -0.6507], device='cuda:0') 
+
+Load erp image: ../data/daejeon_road_outdoor/erp_images_10hz/scene_2/frame_0033.jpg
+translation  tensor([-0.0516,  0.0098, -0.6711], device='cuda:0') 
+
+Load erp image: ../data/daejeon_road_outdoor/erp_images_10hz/scene_2/frame_0034.jpg
+translation  tensor([-0.0534,  0.0100, -0.6910], device='cuda:0') 
+
+Load erp image: ../data/daejeon_road_outdoor/erp_images_10hz/scene_2/frame_0035.jpg
+translation  tensor([-0.0550,  0.0102, -0.7090], device='cuda:0') 
+
+Load erp image: ../data/daejeon_road_outdoor/erp_images_10hz/scene_2/frame_0036.jpg
+translation  tensor([-0.0568,  0.0105, -0.7280], device='cuda:0') 
+
+Load erp image: ../data/daejeon_road_outdoor/erp_images_10hz/scene_2/frame_0037.jpg
+translation  tensor([-0.0586,  0.0107, -0.7477], device='cuda:0') 
+
+Load erp image: ../data/daejeon_road_outdoor/erp_images_10hz/scene_2/frame_0038.jpg
+translation  tensor([-0.0601,  0.0109, -0.7659], device='cuda:0') 
+
+Load erp image: ../data/daejeon_road_outdoor/erp_images_10hz/scene_2/frame_0039.jpg
+translation  tensor([-0.0620,  0.0112, -0.7853], device='cuda:0') 
+
+Load erp image: ../data/daejeon_road_outdoor/erp_images_10hz/scene_2/frame_0040.jpg
+translation  tensor([-0.0638,  0.0113, -0.8030], device='cuda:0') 
+
+Load erp image: ../data/daejeon_road_outdoor/erp_images_10hz/scene_2/frame_0041.jpg
+translation  tensor([-0.0655,  0.0115, -0.8198], device='cuda:0') 
+
+Load erp image: ../data/daejeon_road_outdoor/erp_images_10hz/scene_2/frame_0042.jpg
+translation  tensor([-0.0672,  0.0117, -0.8366], device='cuda:0') 
+
+Load erp image: ../data/daejeon_road_outdoor/erp_images_10hz/scene_2/frame_0043.jpg
+translation  tensor([-0.0689,  0.0118, -0.8528], device='cuda:0') 
+
+Load erp image: ../data/daejeon_road_outdoor/erp_images_10hz/scene_2/frame_0044.jpg
+translation  tensor([-0.0706,  0.0120, -0.8680], device='cuda:0') 
+
+Load erp image: ../data/daejeon_road_outdoor/erp_images_10hz/scene_2/frame_0045.jpg
+translation  tensor([-0.0723,  0.0122, -0.8826], device='cuda:0') 
+
+Load erp image: ../data/daejeon_road_outdoor/erp_images_10hz/scene_2/frame_0046.jpg
+translation  tensor([-0.0741,  0.0123, -0.8960], device='cuda:0') 
+
+Load erp image: ../data/daejeon_road_outdoor/erp_images_10hz/scene_2/frame_0047.jpg
+translation  tensor([-0.0758,  0.0124, -0.9092], device='cuda:0') 
+
+Load erp image: ../data/daejeon_road_outdoor/erp_images_10hz/scene_2/frame_0048.jpg
+translation  tensor([-0.0774,  0.0126, -0.9213], device='cuda:0') 
+
+Load erp image: ../data/daejeon_road_outdoor/erp_images_10hz/scene_2/frame_0049.jpg
+translation  tensor([-0.0788,  0.0127, -0.9322], device='cuda:0') 
+
+Load erp image: ../data/daejeon_road_outdoor/erp_images_10hz/scene_2/frame_0050.jpg
+translation  tensor([-0.0802,  0.0128, -0.9426], device='cuda:0') 
+
+Load erp image: ../data/daejeon_road_outdoor/erp_images_10hz/scene_2/frame_0051.jpg
+translation  tensor([-0.0815,  0.0129, -0.9529], device='cuda:0') 
+
+Load erp image: ../data/daejeon_road_outdoor/erp_images_10hz/scene_2/frame_0052.jpg
+translation  tensor([-0.0828,  0.0130, -0.9625], device='cuda:0') 
+
+Load erp image: ../data/daejeon_road_outdoor/erp_images_10hz/scene_2/frame_0053.jpg
+translation  tensor([-0.0841,  0.0132, -0.9717], device='cuda:0') 
+
+Load erp image: ../data/daejeon_road_outdoor/erp_images_10hz/scene_2/frame_0054.jpg
+translation  tensor([-0.0852,  0.0133, -0.9805], device='cuda:0') 
+
+Load erp image: ../data/daejeon_road_outdoor/erp_images_10hz/scene_2/frame_0055.jpg
+translation  tensor([-0.0863,  0.0134, -0.9884], device='cuda:0') 
+
+Load erp image: ../data/daejeon_road_outdoor/erp_images_10hz/scene_2/frame_0056.jpg
+translation  tensor([-0.0873,  0.0136, -0.9955], device='cuda:0') 
+
+Load erp image: ../data/daejeon_road_outdoor/erp_images_10hz/scene_2/frame_0057.jpg
+translation  tensor([-0.0882,  0.0137, -1.0023], device='cuda:0') 
+
+Load erp image: ../data/daejeon_road_outdoor/erp_images_10hz/scene_2/frame_0058.jpg
+translation  tensor([-0.0891,  0.0138, -1.0088], device='cuda:0') 
+
+Load erp image: ../data/daejeon_road_outdoor/erp_images_10hz/scene_2/frame_0059.jpg
+translation  tensor([-0.0899,  0.0140, -1.0142], device='cuda:0') 
+
+Load erp image: ../data/daejeon_road_outdoor/erp_images_10hz/scene_2/frame_0060.jpg
+translation  tensor([-0.0906,  0.0141, -1.0195], device='cuda:0') 
+
+Load erp image: ../data/daejeon_road_outdoor/erp_images_10hz/scene_2/frame_0061.jpg
+translation  tensor([-0.0912,  0.0143, -1.0241], device='cuda:0') 
+
