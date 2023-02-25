@@ -58,7 +58,7 @@ class BEVDet(CenterPoint):
         x = self.bev_encoder(x)
         return [x], depth
 
-    def extract_feat(self, points, img, img_metas, **kwargs):
+    def extract_feat(self, img, img_metas, **kwargs):
         """Extract features from images and points."""
         
         """ 
@@ -146,7 +146,7 @@ class BEVDet(CenterPoint):
         if not isinstance(img_inputs[0][0], list):
             img_inputs = [img_inputs] if img_inputs is None else img_inputs
             points = [points] if points is None else points
-            return self.simple_test(points[0], img_metas[0], img_inputs[0], **kwargs)
+            return self.simple_test(img_metas[0], img_inputs[0], **kwargs)
         else:
             return self.aug_test(None, img_metas[0], img_inputs[0], **kwargs)
 
@@ -156,19 +156,22 @@ class BEVDet(CenterPoint):
 
     """ BEVDet, BEVDet4D의 forward pass는 모두 결국 여기부터 시작 """
     def simple_test(self,
-                    points,
                     img_metas,
                     img=None,
                     rescale=False,
                     **kwargs):
         """Test function without augmentaiton."""
-        img_feats, _, _ = self.extract_feat(points, img=img, img_metas=img_metas, **kwargs)
+        img_feats, _, _ = self.extract_feat(img=img, img_metas=img_metas, **kwargs)
         bbox_list = [dict() for _ in range(len(img_metas))]
         
         """
         simple_test_pts from CenterPoint class
         CenterPoint bbox detection head 실행, LSS를 거쳐서 나온 point clouds 상에서 detection
         """
+        
+        print(img_feats.shape)
+        print(img_feats)
+        
         bbox_pts = self.simple_test_pts(img_feats, img_metas, rescale=rescale)
         
         for result_dict, pts_bbox in zip(bbox_list, bbox_pts):
@@ -352,12 +355,10 @@ class BEVDet4D(BEVDet):
         imgs, rots_curr, trans_curr, intrins = inputs[:4]
         rots_prev, trans_prev, post_rots, post_trans, bda = inputs[4:]
         bev_feat_list = []
-        mlp_input = self.img_view_transformer.get_mlp_input(
-            rots_curr[0:1, ...], trans_curr[0:1, ...], intrins, post_rots,
-            post_trans, bda[0:1, ...])
+        mlp_input = self.img_view_transformer.get_mlp_input(rots_curr[0:1, ...], trans_curr[0:1, ...], 
+                                                            intrins, post_rots, post_trans, bda[0:1, ...])
         inputs_curr = (imgs, rots_curr[0:1, ...], trans_curr[0:1, ...],
-                       intrins, post_rots, post_trans, bda[0:1,
-                                                           ...], mlp_input)
+                       intrins, post_rots, post_trans, bda[0:1, ...], mlp_input)
         bev_feat, depth = self.prepare_bev_feat(*inputs_curr)
         bev_feat_list.append(bev_feat)
 
