@@ -250,8 +250,7 @@ class BEVDet4D(BEVDet):
             Feature after view transformation. By default, the BEV feature of
             the previous frame is aligned during the view transformation.
         num_adj (int): Number of adjacent frames.
-        with_prev (bool): Whether to set the BEV feature of previous frame as
-            all zero. By default, False.
+        with_prev (bool): Whether to set the BEV feature of previous frame as all zero. By default, False.
     """
     def __init__(self,
                  pre_process=None,
@@ -427,10 +426,8 @@ class BEVDet4D(BEVDet):
             if key_frame or self.with_prev:
                 if self.align_after_view_transfromation:
                     rot, tran = rots[0], trans[0]
-                mlp_input = self.img_view_transformer.get_mlp_input(
-                    rots[0], trans[0], intrin, post_rot, post_tran, bda)
-                inputs_curr = (img, rot, tran, intrin, post_rot,
-                               post_tran, bda, mlp_input)
+                mlp_input = self.img_view_transformer.get_mlp_input(rots[0], trans[0], intrin, post_rot, post_tran, bda)
+                inputs_curr = (img, rot, tran, intrin, post_rot, post_tran, bda, mlp_input)
                 if key_frame:
                     bev_feat, depth = self.prepare_bev_feat(*inputs_curr) # BEV feature과 depth map 반환
                 else:

@@ -13,6 +13,8 @@ from .builder import DATASETS
 from .custom_3d import Custom3DDataset
 from .pipelines import Compose
 
+from scipy.spatial.transform import Rotation as R
+
 @DATASETS.register_module()
 class NuScenesDataset(Custom3DDataset):
     r"""NuScenes Dataset.
@@ -426,94 +428,6 @@ class NuScenesDataset(Custom3DDataset):
         print('Results writes to', res_path)
         mmcv.dump(nusc_submissions, res_path)
         return res_path
-    
-    def _format_single_bbox(self, results, sample_idx, jsonfile_prefix=None):
-        """Convert the results to the standard format.
-
-        Args:
-            results (list[dict]): Testing results of the dataset.
-            jsonfile_prefix (str): The prefix of the output jsonfile.
-                You can specify the output directory/filename by
-                modifying the jsonfile_prefix. Default: None.
-
-        Returns:
-            str: Path of the output json file.
-        """
-        nusc_annos = {}
-        mapped_class_names = self.CLASSES
-
-        print('Start to convert detection format...')
-        det = results[0] # single inference result
-        boxes = det['boxes_3d'].tensor.numpy()
-        scores = det['scores_3d'].numpy()
-        labels = det['labels_3d'].numpy()
-        
-        sample_token = self.data_infos[sample_idx]['token']
-        print(sample_token)
-
-        trans = self.data_infos[sample_idx]['cams'][self.ego_cam]['ego2global_translation']
-        rot = self.data_infos[sample_idx]['cams'][self.ego_cam]['ego2global_rotation']
-        rot = pyquaternion.Quaternion(rot)
-        annos = list()
-        for i, box in enumerate(boxes):
-            name = mapped_class_names[labels[i]]
-            center = box[:3]
-            wlh = box[[4, 3, 5]]
-            box_yaw = box[6]
-            box_vel = box[7:].tolist()
-            box_vel.append(0)
-            quat = pyquaternion.Quaternion(axis=[0, 0, 1], radians=box_yaw)
-            nusc_box = NuScenesBox(center, wlh, quat, velocity=box_vel)
-            nusc_box.rotate(rot)
-            nusc_box.translate(trans)
-            if np.sqrt(nusc_box.velocity[0]**2 +
-                       nusc_box.velocity[1]**2) > 0.2:
-                if name in [
-                        'car',
-                        'construction_vehicle',
-                        'bus',
-                        'truck',
-                        'trailer',
-                ]:
-                    attr = 'vehicle.moving'
-                elif name in ['bicycle', 'motorcycle']:
-                    attr = 'cycle.with_rider'
-                else:
-                    attr = self.DefaultAttribute[name]
-            else:
-                if name in ['pedestrian']:
-                    attr = 'pedestrian.standing'
-                elif name in ['bus']:
-                    attr = 'vehicle.stopped'
-                else:
-                    attr = self.DefaultAttribute[name]
-            nusc_anno = dict(
-                sample_token=sample_token,
-                translation=nusc_box.center.tolist(),
-                size=nusc_box.wlh.tolist(),
-                rotation=nusc_box.orientation.elements.tolist(),
-                velocity=nusc_box.velocity[:2],
-                detection_name=name,
-                detection_score=float(scores[i]),
-                attribute_name=attr,
-            )
-            annos.append(nusc_anno)
-        # other views results of the same frame should be concatenated
-        if sample_token in nusc_annos:
-            nusc_annos[sample_token].extend(annos)
-        else:
-            nusc_annos[sample_token] = annos
-        
-        nusc_submissions = {
-            'meta': self.modality,
-            'results': nusc_annos,
-        }
-
-        mmcv.mkdir_or_exist(jsonfile_prefix)
-        res_path = osp.join(jsonfile_prefix, 'results_nusc.json')
-        print('Results writes to', res_path)
-        mmcv.dump(nusc_submissions, res_path)
-        return res_path
 
     def format_results(self, results, jsonfile_prefix=None):
         """Format the results to json (standard format for COCO evaluation).
@@ -560,7 +474,84 @@ class NuScenesDataset(Custom3DDataset):
                     {name: self._format_bbox(results_, tmp_file_)})
         return result_files, tmp_dir
     
-    def format_single_result(self, results, idx, jsonfile_prefix=None):
+    """ 
+    jeho
+    nuscenes single frame에 대한 bbox outputs formatting
+    """ 
+    def _format_single_bbox_nusc(self, results, sample_idx, jsonfile_prefix=None):
+        nusc_annos = {}
+        mapped_class_names = self.CLASSES
+
+        print('Start to convert detection format...')
+        det = results[0] # single inference result
+        boxes = det['boxes_3d'].tensor.numpy()
+        scores = det['scores_3d'].numpy()
+        labels = det['labels_3d'].numpy()
+        
+        sample_token = self.data_infos[sample_idx]['token']
+        print(sample_token)
+
+        trans = self.data_infos[sample_idx]['cams'][self.ego_cam]['ego2global_translation']
+        rot = self.data_infos[sample_idx]['cams'][self.ego_cam]['ego2global_rotation']
+        rot = pyquaternion.Quaternion(rot)
+        annos = list()
+        for i, box in enumerate(boxes):
+            name = mapped_class_names[labels[i]]
+            center = box[:3]
+            wlh = box[[4, 3, 5]]
+            box_yaw = box[6]
+            box_vel = box[7:].tolist()
+            box_vel.append(0)
+            quat = pyquaternion.Quaternion(axis=[0, 0, 1], radians=box_yaw)
+            nusc_box = NuScenesBox(center, wlh, quat, velocity=box_vel)
+            nusc_box.rotate(rot)
+            nusc_box.translate(trans)
+            
+            if np.sqrt(nusc_box.velocity[0]**2 + nusc_box.velocity[1]**2) > 0.2:
+                if name in ['car', 'construction_vehicle', 'bus', 'truck', 'trailer']:
+                    attr = 'vehicle.moving'
+                elif name in ['bicycle', 'motorcycle']:
+                    attr = 'cycle.with_rider'
+                else:
+                    attr = self.DefaultAttribute[name]
+            else:
+                if name in ['pedestrian']:
+                    attr = 'pedestrian.standing'
+                elif name in ['bus']:
+                    attr = 'vehicle.stopped'
+                else:
+                    attr = self.DefaultAttribute[name]
+                    
+            nusc_anno = dict(
+                sample_token=sample_token,
+                translation=nusc_box.center.tolist(),
+                size=nusc_box.wlh.tolist(),
+                rotation=nusc_box.orientation.elements.tolist(),
+                velocity=nusc_box.velocity[:2],
+                detection_name=name,
+                detection_score=float(scores[i]),
+                attribute_name=attr,
+            )
+            annos.append(nusc_anno)
+        
+        # other views results of the same frame should be concatenated
+        if sample_token in nusc_annos:
+            nusc_annos[sample_token].extend(annos)
+        else:
+            nusc_annos[sample_token] = annos
+        
+        nusc_submissions = {
+            'meta': self.modality,
+            'results': nusc_annos,
+        }
+
+        mmcv.mkdir_or_exist(jsonfile_prefix)
+        res_path = osp.join(jsonfile_prefix, 'results_nusc.json')
+        print('Results writes to', res_path)
+        mmcv.dump(nusc_submissions, res_path)
+        return res_path
+    
+    def format_single_result_nusc(self, results, idx, jsonfile_prefix=None):
 
         assert idx is not None, 'format single result must pass nuscenes index'
         
@@ -576,6 +567,107 @@ class NuScenesDataset(Custom3DDataset):
             tmp_file_ = osp.join(jsonfile_prefix, name)
             result_files.update(
                 {name: self._format_single_bbox(results_, idx, tmp_file_)})
+
+        return result_files
+
+    """ 
+    jeho
+    Insta360 frame에 대한 bbox outputs formatting
+    """ 
+    def _format_single_bbox_insta360(self, results, data, jsonfile_prefix=None):
+        nusc_annos = {}
+        mapped_class_names = self.CLASSES
+
+        print('Start to convert detection format...')
+        det = results[0] # single inference result
+        boxes = det['boxes_3d'].tensor.numpy()
+        scores = det['scores_3d'].numpy()
+        labels = det['labels_3d'].numpy()
+        
+        sample_idx = data['sample_idx']
+
+        ego2global_trans = data['ego2global'][:3, -1].cpu().numpy().tolist()
+        ego2global_rot = data['ego2global'][:3, :3].cpu().numpy().tolist()
+        r = R.from_matrix(ego2global_rot)
+        quat = r.as_quat()
+        quat_xyz = quat[:3]
+        quat_w = [quat[-1]]
+        quat = np.concatenate([quat_w, quat_xyz])
+        
+        trans = ego2global_trans
+        rot = pyquaternion.Quaternion(quat)
+
+        # trans = self.data_infos[sample_idx]['cams'][self.ego_cam]['ego2global_translation']
+        # rot = self.data_infos[sample_idx]['cams'][self.ego_cam]['ego2global_rotation']
+        # rot = pyquaternion.Quaternion(rot)
+        
+        annos = list()
+        for i, box in enumerate(boxes):
+            name = mapped_class_names[labels[i]]
+            center = box[:3]
+            wlh = box[[4, 3, 5]]
+            box_yaw = box[6]
+            box_vel = box[7:].tolist()
+            box_vel.append(0)
+            quat = pyquaternion.Quaternion(axis=[0, 0, 1], radians=box_yaw)
+            nusc_box = NuScenesBox(center, wlh, quat, velocity=box_vel)
+            
+            # bbox from ego to global
+            nusc_box.rotate(rot)
+            nusc_box.translate(trans)
+            
+            if np.sqrt(nusc_box.velocity[0]**2 + nusc_box.velocity[1]**2) > 0.2:
+                if name in ['car', 'construction_vehicle', 'bus', 'truck', 'trailer']:
+                    attr = 'vehicle.moving'
+                elif name in ['bicycle', 'motorcycle']:
+                    attr = 'cycle.with_rider'
+                else:
+                    attr = self.DefaultAttribute[name]
+            else:
+                if name in ['pedestrian']:
+                    attr = 'pedestrian.standing'
+                elif name in ['bus']:
+                    attr = 'vehicle.stopped'
+                else:
+                    attr = self.DefaultAttribute[name]
+                    
+            nusc_anno = dict(
+                # sample_token=sample_token,
+                sample_idx=sample_idx,
+                translation=nusc_box.center.tolist(),
+                size=nusc_box.wlh.tolist(),
+                rotation=nusc_box.orientation.elements.tolist(),
+                velocity=nusc_box.velocity[:2],
+                detection_name=name,
+                detection_score=float(scores[i]),
+                attribute_name=attr,
+            )
+            annos.append(nusc_anno)
+        
+        # nusc_annos[sample_idx].extend(annos)
+        nusc_annos[sample_idx] = annos
+        
+        nusc_submissions = {
+            'meta': self.modality,
+            'results': nusc_annos,
+        }
+
+        mmcv.mkdir_or_exist(jsonfile_prefix)
+        res_path = osp.join(jsonfile_prefix, 'results_nusc.json')
+        print('Results writes to', res_path)
+        mmcv.dump(nusc_submissions, res_path)
+        return res_path
+    
+    def format_single_result_insta360(self, results, data, jsonfile_prefix=None):
+        assert data is not None, 'format single result must pass current frame data'
+        
+        # should take the inner dict out of 'pts_bbox' or 'img_bbox' dict
+        result_files = dict()
+        for name in results[0]:
+            # print(f'\nFormating bboxes of {name}')
+            results_ = [out[name] for out in results]
+            tmp_file_ = osp.join(jsonfile_prefix, name)
+            result_files.update({name: self._format_single_bbox_insta360(results_, data, tmp_file_)})
 
         return result_files
 
