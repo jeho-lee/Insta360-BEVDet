@@ -270,7 +270,7 @@ class NuScenesDataset(Custom3DDataset):
                 if not self.test_mode:
                     annos = self.get_ann_info(index)
                     input_dict['ann_info'] = annos
-            else: 
+            else:
                 assert 'bevdet' in self.img_info_prototype # BEVDet4D는 여기!
                 input_dict.update(dict(curr=info))
                 if '4d' in self.img_info_prototype:
