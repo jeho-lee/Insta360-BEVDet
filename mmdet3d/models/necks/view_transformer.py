@@ -603,10 +603,9 @@ class LSSViewTransformerBEVDepth(LSSViewTransformer):
             bda[:, :, 1, 0],
             bda[:, :, 1, 1],
             bda[:, :, 2, 2],
-        ],
-                                dim=-1)
-        sensor2ego = torch.cat([rot, tran.reshape(B, N, 3, 1)],
-                               dim=-1).reshape(B, N, -1)
+        ], dim=-1)
+        
+        sensor2ego = torch.cat([rot, tran.reshape(B, N, 3, 1)], dim=-1).reshape(B, N, -1)
         mlp_input = torch.cat([mlp_input, sensor2ego], dim=-1)
         return mlp_input
 

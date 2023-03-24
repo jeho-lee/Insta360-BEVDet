@@ -169,9 +169,6 @@ class BEVDet(CenterPoint):
         CenterPoint bbox detection head 실행, LSS를 거쳐서 나온 point clouds 상에서 detection
         """
         
-        print(img_feats.shape)
-        print(img_feats)
-        
         bbox_pts = self.simple_test_pts(img_feats, img_metas, rescale=rescale)
         
         for result_dict, pts_bbox in zip(bbox_list, bbox_pts):
